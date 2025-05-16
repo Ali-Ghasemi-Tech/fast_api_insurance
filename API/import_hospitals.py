@@ -1,21 +1,20 @@
 import json
 import asyncio
-from API.database import SessionLocal  # direct sessionmaker, not the generator
 from API.model import Hospital
+from API.database import get_async_session, Base, engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
-path = "API/hospitals.json"
-async def import_hospitals():
-    async with SessionLocal() as session:
-        with open(path, "r", encoding="utf-8") as f:
+async def load_hospitals():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async for session in get_async_session():
+        with open("hospitals.json", encoding="utf-8") as f:
             data = json.load(f)
-
-            for entry in data:
-                fields = entry["fields"]
-                hospital = Hospital(**fields)
+            for item in data:
+                hospital = Hospital(**item)
                 session.add(hospital)
-
-        await session.commit()
-    print("✅ Data imported successfully!")
+            await session.commit()
 
 if __name__ == "__main__":
-    asyncio.run(import_hospitals())
+    asyncio.run(load_hospitals())
