@@ -17,7 +17,7 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # Set the SQLAlchemy URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 if DATABASE_URL:
     config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
