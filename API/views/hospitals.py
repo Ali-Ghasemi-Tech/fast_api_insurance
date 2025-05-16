@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from API.model import Hospital
-from API.database import get_async_session
-from API.schema import HospitalLocationResponse
+from model import Hospital
+from database import get_async_session
+from schema import HospitalLocationResponse
 from cachetools import TTLCache
 import httpx
 import asyncio

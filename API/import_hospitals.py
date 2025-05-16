@@ -1,6 +1,6 @@
 import json
-from API.model import Hospital
-from API.database import get_session, Base, engine
+from .model import Hospital
+from .database import get_session, Base, engine
 from sqlalchemy.orm import Session
 
 def load_hospitals():
