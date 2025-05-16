@@ -14,7 +14,7 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # Use DATABASE_URL env var or fallback
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://root:ANbnYn3tRyS4DgOm2nLsZpmF@insurance:5432/insurance")
+DATABASE_URL = "postgresql://root:ANbnYn3tRyS4DgOm2nLsZpmF@insurance:5432/insurance"
 if DATABASE_URL:
     config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
