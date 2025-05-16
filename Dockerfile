@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy your app code
 COPY . .
-CMD ["bash", "-c", "alembic upgrade head && python API/import_hospitals.py &&uvicorn API.main:app --host 0.0.0.0 --port 8000"] 
+CMD ["bash", "-c", "alembic revision --autogenerate -m 'load the db'&& alembic upgrade head && python API/import_hospitals.py &&uvicorn API.main:app --host 0.0.0.0 --port 8000"] 
