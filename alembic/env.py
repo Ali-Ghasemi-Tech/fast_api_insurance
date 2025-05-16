@@ -13,10 +13,10 @@ config = context.config
 # Set up Python logging
 fileConfig(config.config_file_name)
 
-# Use DATABASE_URL env var or fallback
-DATABASE_URL = "postgresql://root:ANbnYn3tRyS4DgOm2nLsZpmF@insurance:5432/postgres"
-if DATABASE_URL:
-    config.set_main_option("sqlalchemy.url", DATABASE_URL)
+# Use database_url env var or fallback
+database_url = "postgresql://root:ANbnYn3tRyS4DgOm2nLsZpmF@insurance:5432/postgres"
+if database_url:
+    config.set_main_option("sqlalchemy.url", database_url)
 
 # Target metadata for autogenerate
 target_metadata = Base.metadata
@@ -24,7 +24,7 @@ target_metadata = Base.metadata
 def run_migrations_offline():
     """Run migrations without DB connection (offline mode)."""
     context.configure(
-        url=DATABASE_URL,
+        url=database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
