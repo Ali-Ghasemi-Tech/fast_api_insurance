@@ -1,20 +1,22 @@
 import json
-import asyncio
 from API.model import Hospital
-from API.database import get_async_session, Base, engine
-from sqlalchemy.ext.asyncio import AsyncSession
+from API.database import get_session, Base, engine
+from sqlalchemy.orm import Session
 
-async def load_hospitals():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+def load_hospitals():
+    # Create tables if not already created
+    Base.metadata.create_all(bind=engine)
 
-    async for session in get_async_session():
-        with open("hospitals.json", encoding="utf-8") as f:
-            data = json.load(f)
-            for item in data:
-                hospital = Hospital(**item)
-                session.add(hospital)
-            await session.commit()
+    # Load JSON data
+    with open("hospitals.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Insert into database
+    for session in get_session():
+        for item in data:
+            hospital = Hospital(**item)
+            session.add(hospital)
+        session.commit()
 
 if __name__ == "__main__":
-    asyncio.run(load_hospitals())
+    load_hospitals()

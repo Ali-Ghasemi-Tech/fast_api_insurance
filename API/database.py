@@ -10,6 +10,9 @@ SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 Base = declarative_base()
 
-async def get_async_session():
-    async with SessionLocal() as session:
-        yield session
+def get_session():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

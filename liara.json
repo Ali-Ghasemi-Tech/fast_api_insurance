@@ -1,7 +1,4 @@
 {
     "app":"insurance-map-backend1",
-    "port":3000,
-    "build":{
-    "location":"germany"
-    }
+    "port":3000
 }
