@@ -23,4 +23,4 @@ COPY . .
 # Set PYTHONPATH so Python can find 'API' module
 ENV PYTHONPATH=/app
 
-CMD ["bash", "-c", "alembic upgrade head"] 
+# CMD ["bash", "-c", "alembic upgrade head"] 
