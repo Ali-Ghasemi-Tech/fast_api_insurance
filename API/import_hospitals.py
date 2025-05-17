@@ -14,7 +14,8 @@ def load_hospitals():
     # Insert into database
     for session in get_session():
         for item in data:
-            hospital = Hospital(**item)
+            fields = item["fields"]
+            hospital = Hospital(**fields)
             session.add(hospital)
         session.commit()
 
