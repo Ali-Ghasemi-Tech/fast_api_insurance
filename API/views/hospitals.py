@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy.orm import Session
 from API.model import Hospital
-from API.database import get_async_session
+from API.database import get_session
 from API.schema import HospitalLocationResponse
 from cachetools import TTLCache
 import httpx
@@ -10,35 +9,32 @@ import asyncio
 import os
 import logging
 from dotenv import load_dotenv
+import anyio
 
 load_dotenv()
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-# In-memory cache: max 1024 items, TTL 600 seconds
 cache = TTLCache(maxsize=1024, ttl=600)
 
 MAP_IR_API_KEY = os.getenv("MAP_IR_API_KEY")
 
-async def get_hospitals(session: AsyncSession, insurance_name: str, city: str, medical_class: str):
+# Wrap DB access to run in a thread pool
+def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical_class: str):
     cache_key = f"hospitals_{insurance_name}_{city}_{medical_class}"
     if cache_key in cache:
         logger.info(f"Cache HIT for {cache_key}")
         return cache[cache_key]
 
     logger.info(f"Cache MISS for {cache_key}")
-    result = await session.execute(
-        select(Hospital).where(
-            Hospital.insurance == insurance_name,
-            Hospital.city == city,
-            Hospital.medical_class == medical_class
-        )
-    )
-    hospitals = result.scalars().all()
+    hospitals = session.query(Hospital).filter_by(
+        insurance=insurance_name,
+        city=city,
+        medical_class=medical_class
+    ).all()
     cache[cache_key] = hospitals
     return hospitals
-
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
 async def hospital_locations(
@@ -47,7 +43,7 @@ async def hospital_locations(
     lng: str = Query(...),
     selected_city: str = Query("تهران"),
     selected_class: str = Query("بیمارستان"),
-    session: AsyncSession = Depends(get_async_session)
+    session: Session = Depends(get_session)
 ):
     cache_key = f"hospitals_{insurance_name}_{lat}_{lng}_{selected_class}"
     if cache_key in cache:
@@ -75,7 +71,9 @@ async def hospital_locations(
                 "searched_hospitals": []
             }
 
-    hospitals = await get_hospitals(session, insurance_name, city, selected_class)
+    # Run sync DB call in a separate thread
+    hospitals = await anyio.to_thread.run_sync(get_hospitals_sync, session, insurance_name, city, selected_class)
+
     if not hospitals:
         return {
             "locations": [],
