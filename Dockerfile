@@ -23,4 +23,4 @@ COPY . .
 # Set PYTHONPATH so Python can find 'API' module
 ENV PYTHONPATH=/app
 
-CMD ["bash", "-c", "alembic upgrade head &&python API/import_hospitals.py &&uvicorn API.main:app --host 0.0.0.0 --port 8000"] 
+CMD ["bash", "-c", "alembic upgrade head"] 
