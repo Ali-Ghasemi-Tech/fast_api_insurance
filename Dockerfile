@@ -24,3 +24,8 @@ COPY . .
 ENV PYTHONPATH=/app
 
 # CMD ["bash", "-c", "alembic upgrade head"] 
+# COPY start.sh /app/start.sh
+# RUN chmod +x /app/start.sh
+# CMD ["/app/start.sh"]
+
+CMD ["tail", "-f", "/dev/null"]
