@@ -8,7 +8,7 @@ def load_hospitals():
     Base.metadata.create_all(bind=engine)
 
     # Load JSON data
-    with open("hospitals.json", encoding="utf-8") as f:
+    with open("API/hospitals.json", encoding="utf-8") as f:
         data = json.load(f)
 
     # Insert into database
