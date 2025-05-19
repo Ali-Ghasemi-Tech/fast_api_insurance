@@ -1,7 +1,7 @@
 import json
 from API.model import Hospital
-from API.database import get_session, Base, engine
-from sqlalchemy.orm import Session
+from API.database import SessionLocal, Base, engine
+from sqlalchemy import select
 
 def load_hospitals():
     # Create tables if not already created
@@ -11,12 +11,16 @@ def load_hospitals():
     with open("API/hospitals.json", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Insert into database
-    for session in get_session():
+    # Use a single DB session
+    with SessionLocal() as session:
         for item in data:
             fields = item["fields"]
-            hospital = Hospital(**fields)
-            session.add(hospital)
+
+            # Check for existing record (adjust logic if needed)
+
+            insurance_hospitals = Hospital(**fields)
+            session.add(insurance_hospitals)
+
         session.commit()
 
 if __name__ == "__main__":

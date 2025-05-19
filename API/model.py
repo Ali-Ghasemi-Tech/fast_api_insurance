@@ -5,7 +5,7 @@ class Hospital(Base):
     __tablename__ = "hospitals"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
+    name = Column(String , unique=True)
     insurance = Column(String)
     city = Column(String)
     phone = Column(String , nullable=True)

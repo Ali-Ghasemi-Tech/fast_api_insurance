@@ -6,6 +6,8 @@ from alembic import context
 
 from API.database import Base  # your Base metadata
 from API import model          # import models so Alembic detects them
+from dotenv import load_dotenv
+load_dotenv()
 
 # Alembic config object
 config = context.config
@@ -14,7 +16,7 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # Use database_url env var or fallback
-database_url = "postgresql://root:ANbnYn3tRyS4DgOm2nLsZpmF@insurance:5432/postgres"
+database_url = os.getenv("DATABASE_URL")
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 
