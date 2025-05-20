@@ -45,10 +45,7 @@ async def hospital_locations(
     selected_class: str = Query("بیمارستان"),
     session: Session = Depends(get_session)
 ):
-    cache_key = f"hospitals_{insurance_name}_{lat}_{lng}_{selected_class}"
-    if cache_key in cache:
-        logger.info(f"Returning cached response for {cache_key}")
-        return cache[cache_key]
+    
 
     city, province = selected_city, selected_city
     if selected_city == "مکان فعلی من":
@@ -87,6 +84,11 @@ async def hospital_locations(
 
     async def fetch_location(hospital):
         try:
+            cache_key = f"hospitals_{insurance_name}_{selected_class}_{selected_city}"
+            if cache_key in cache:
+                logger.info(f"Returning cached response for {cache_key}")
+                return cache[cache_key]
+            
             request_url = f'https://map.ir/search/v2/autocomplete/?text={hospital.name}&%24filter=city eq {city}&lat={lat}&lon={lng}'
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
