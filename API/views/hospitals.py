@@ -16,7 +16,7 @@ load_dotenv()
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-cache = TTLCache(maxsize=1024, ttl=600)
+cache = TTLCache(maxsize=1024, ttl=10)
 
 MAP_IR_API_KEY = os.getenv("MAP_IR_API_KEY")
 
@@ -104,7 +104,7 @@ async def hospital_locations(
                 if "value" in data:
                     for item in data["value"]:
                         if selected_class in item["title"]:
-                            return item
+                            return item[0]
         except Exception as e:
             logger.error(f"map.ir failed for {hospital.name}: {str(e)}")
             failed_hospitals.append(hospital.name)
@@ -122,6 +122,6 @@ async def hospital_locations(
         "failed_hospitals": failed_hospitals,
         "searched_hospitals": searched_hospitals
     }
-
-    cache[cache_key] = response_data
+    if response_data.get('locations') != []:
+        cache[cache_key] = response_data
     return response_data
