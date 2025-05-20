@@ -32,8 +32,9 @@ def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical
         insurance=insurance_name,
         city=city,
         medical_class=medical_class
-    ).limit(30).all()
-    cache[cache_key] = hospitals
+    ).limit(20).all()
+    if hospitals:
+        cache[cache_key] = hospitals
     return hospitals
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
@@ -46,7 +47,10 @@ async def hospital_locations(
     session: Session = Depends(get_session)
 ):
     
-
+    cache_key = f"hospitals_{insurance_name}_{selected_class}_{selected_city}"
+    if cache_key in cache:
+        logger.info(f"Returning cached response for {cache_key}")
+        return cache[cache_key]
     city, province = selected_city, selected_city
     if selected_city == "مکان فعلی من":
         try:
@@ -83,6 +87,7 @@ async def hospital_locations(
     searched_hospitals = [h.name for h in hospitals]
 
     async def fetch_location(hospital):
+        
         try:
             cache_key = f"hospitals_{insurance_name}_{selected_class}_{selected_city}"
             if cache_key in cache:
