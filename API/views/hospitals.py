@@ -101,10 +101,11 @@ async def hospital_locations(
                     headers={"x-api-key": MAP_IR_API_KEY}
                 )
                 data = response.json()
+                print(data)
                 if "value" in data:
                     for item in data["value"]:
                         if selected_class in item["title"]:
-                            return item[0]
+                            return item
         except Exception as e:
             logger.error(f"map.ir failed for {hospital.name}: {str(e)}")
             failed_hospitals.append(hospital.name)
