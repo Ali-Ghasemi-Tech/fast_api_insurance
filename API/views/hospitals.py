@@ -32,7 +32,7 @@ def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical
         insurance=insurance_name,
         city=city,
         medical_class=medical_class
-    ).all()
+    ).limit(30).all()
     cache[cache_key] = hospitals
     return hospitals
 
