@@ -41,8 +41,8 @@ async def hospital_locations(
     session: Session = Depends(get_session)
 ):
     
-    
-    city, province = selected_city, selected_city
+    province = 'تهران'
+    city = selected_city
     if selected_city == "مکان فعلی من":
         try:
             async with httpx.AsyncClient() as client:
@@ -53,8 +53,8 @@ async def hospital_locations(
                 )
                 response.raise_for_status()
                 data = response.json()
-                province = data.get("province", "تهران")
-                city = data.get("city", "تهران")
+                province = data.get("province")
+                city = data.get("city")
         except Exception as e:
             logger.error(f"Location resolution failed: {str(e)}")
             return {
@@ -95,8 +95,11 @@ async def hospital_locations(
         return cache[cache_key]
     async def fetch_location(hospital):
         try:
-            
             request_url = f'https://map.ir/search/v2/autocomplete/?text={hospital.name}&%24filter=province eq {province}&lat={lat}&lon={lng}'
+            if city != '':
+                request_url = f'https://map.ir/search/v2/autocomplete/?text={hospital.name}&%24filter=city eq {city}&lat={lat}&lon={lng}'
+            
+            print (request_url)
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
                     request_url,
