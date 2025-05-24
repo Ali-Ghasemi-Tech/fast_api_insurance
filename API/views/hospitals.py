@@ -75,7 +75,7 @@ async def hospital_locations(
 
     # Run sync DB call in a separate thread
     hospitals = await anyio.to_thread.run_sync(get_hospitals_sync, session, insurance_name, city, selected_class)
-    logger.info(f"the data that was taken from DB: {hospitals}")
+    print(f"the data that was taken from DB: {hospitals}")
 
     if not hospitals:
         return {
@@ -96,14 +96,14 @@ async def hospital_locations(
                 logger.info(f"Returning cached response for {cache_key}")
                 return cache[cache_key]
             
-            request_url = f'https://map.ir/search/v2/autocomplete/?text={hospital.name}&%24filter=city eq {city}&lat={lat}&lon={lng}'
+            request_url = f'https://map.ir/search/v2/autocomplete/?text={hospital.name}&%24filter=province eq {province}&lat={lat}&lon={lng}'
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
                     request_url,
                     headers={"x-api-key": MAP_IR_API_KEY},
                 )
                 data = response.json()
-                pprint(f"the map.ir resolved request: {data}")
+                print(f"the map.ir search param: {hospital.name}")
                 if "value" in data:
                     for item in data["value"]:
                         if selected_class in item["title"] or item['fclass'] in ['clinic' , 'hospital' , 'medical']:
