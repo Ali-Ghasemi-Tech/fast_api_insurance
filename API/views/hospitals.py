@@ -63,18 +63,18 @@ async def hospital_locations(
                 "searched_hospitals": []
             }
         
-    cache_key = f"hospitals_{insurance_name}_{selected_class}_{selected_city}"
-    if cache_key in cache:
+    cache_key_db = f"hospitals_{insurance_name}_{selected_class}_{selected_city}"
+    if cache_key_db in cache:
         print('hospitals are cached from the db , returning cach')
-        logger.info(f"Returning cached response for {cache_key}")
-        hospitals =  cache[cache_key]
+        logger.info(f"Returning cached response for {cache_key_db}")
+        hospitals = cache[cache_key_db]
         print(hospitals)
     
     # Run sync DB call in a separate thread
     else :
         hospitals = await anyio.to_thread.run_sync(get_hospitals_sync, session, insurance_name, city, selected_class)
         if hospitals:
-            cache[cache_key] = hospitals
+            cache[cache_key_db] = hospitals
     # for hospital in hospitals:
         # print(f"the data that was taken from DB: {hospital.name}")
 
@@ -88,15 +88,13 @@ async def hospital_locations(
     locations = []
     failed_hospitals = []
     searched_hospitals = []
-
+    cache_key = f"hospitals_locations_{insurance_name}_{selected_class}_{selected_city}"
+    if cache_key in cache:
+        print('hospitals locations are cached ')
+        logger.info(f"Returning cached response for {cache_key}")
+        return cache[cache_key]
     async def fetch_location(hospital):
-        
         try:
-            cache_key = f"hospitals_locations_{insurance_name}_{selected_class}_{selected_city}"
-            if cache_key in cache:
-                print('hospitals locations are cached ')
-                logger.info(f"Returning cached response for {cache_key}")
-                return cache[cache_key]
             
             request_url = f'https://map.ir/search/v2/autocomplete/?text={hospital.name}&%24filter=province eq {province}&lat={lat}&lon={lng}'
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -118,6 +116,7 @@ async def hospital_locations(
         return None
 
     async def worker(hospital):
+        
         result = await fetch_location(hospital)
         if result:
             locations.append(result)
