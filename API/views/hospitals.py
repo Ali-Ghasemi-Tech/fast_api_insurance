@@ -10,6 +10,7 @@ import os
 import logging
 from dotenv import load_dotenv
 import anyio
+from pprint import pprint
 
 load_dotenv()
 
@@ -74,6 +75,7 @@ async def hospital_locations(
 
     # Run sync DB call in a separate thread
     hospitals = await anyio.to_thread.run_sync(get_hospitals_sync, session, insurance_name, city, selected_class)
+    logger.info(f"the data that was taken from DB: {hospitals}")
 
     if not hospitals:
         return {
@@ -99,13 +101,12 @@ async def hospital_locations(
                 response = await client.get(
                     request_url,
                     headers={"x-api-key": MAP_IR_API_KEY},
-                    timeout= 5.0
                 )
                 data = response.json()
-                print(data)
+                pprint(f"the map.ir resolved request: {data}")
                 if "value" in data:
                     for item in data["value"]:
-                        if selected_class in item["title"]:
+                        if selected_class in item["title"] or item['fclass'] in ['clinic' , 'hospital' , 'medical']:
                             return item
         except Exception as e:
             logger.error(f"map.ir failed for {hospital.name}: {str(e)}")
