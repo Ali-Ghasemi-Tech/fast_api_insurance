@@ -71,6 +71,8 @@ async def hospital_locations(
     # Run sync DB call in a separate thread
     else :
         hospitals = await anyio.to_thread.run_sync(get_hospitals_sync, session, insurance_name, city, selected_class)
+        if hospitals:
+            cache[cache_key] = hospitals
     for hospital in hospitals:
         print(f"the data that was taken from DB: {hospital.name}")
 
@@ -88,7 +90,7 @@ async def hospital_locations(
     async def fetch_location(hospital):
         
         try:
-            cache_key = f"hospitals_{insurance_name}_{selected_class}_{selected_city}"
+            cache_key = f"hospitals_locations_{insurance_name}_{selected_class}_{selected_city}"
             if cache_key in cache:
                 logger.info(f"Returning cached response for {cache_key}")
                 return cache[cache_key]
@@ -99,6 +101,7 @@ async def hospital_locations(
                     request_url,
                     headers={"x-api-key": MAP_IR_API_KEY},
                 )
+                print(response)
                 data = response.json()
                 print(f"the map.ir search param: {hospital.name}")
                 if "value" in data:
