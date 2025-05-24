@@ -98,7 +98,8 @@ async def hospital_locations(
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
                     request_url,
-                    headers={"x-api-key": MAP_IR_API_KEY}
+                    headers={"x-api-key": MAP_IR_API_KEY},
+                    timeout= 5.0
                 )
                 data = response.json()
                 print(data)
