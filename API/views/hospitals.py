@@ -17,7 +17,7 @@ load_dotenv()
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-cache = TTLCache(maxsize=1024, ttl=10)
+cache = TTLCache(maxsize=1024, ttl=600)
 
 MAP_IR_API_KEY = os.getenv("MAP_IR_API_KEY")
 
@@ -28,7 +28,7 @@ def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical
         insurance=insurance_name,
         city=city,
         medical_class=medical_class
-    ).limit(20).all()
+    ).all()
     return hospitals
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
@@ -93,6 +93,7 @@ async def hospital_locations(
         try:
             cache_key = f"hospitals_locations_{insurance_name}_{selected_class}_{selected_city}"
             if cache_key in cache:
+                print('hospitals locations are cached ')
                 logger.info(f"Returning cached response for {cache_key}")
                 return cache[cache_key]
             
@@ -129,4 +130,5 @@ async def hospital_locations(
     }
     if response_data.get('locations') != []:
         cache[cache_key] = response_data
+    print(response_data)
     return response_data
