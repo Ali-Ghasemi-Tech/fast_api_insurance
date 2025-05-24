@@ -28,7 +28,7 @@ def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical
         insurance=insurance_name,
         city=city,
         medical_class=medical_class
-    ).all()
+    ).limit(30).all()
     return hospitals
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
@@ -68,14 +68,15 @@ async def hospital_locations(
         print('hospitals are cached from the db , returning cach')
         logger.info(f"Returning cached response for {cache_key}")
         hospitals =  cache[cache_key]
+        print(hospitals)
     
     # Run sync DB call in a separate thread
     else :
         hospitals = await anyio.to_thread.run_sync(get_hospitals_sync, session, insurance_name, city, selected_class)
         if hospitals:
             cache[cache_key] = hospitals
-    for hospital in hospitals:
-        print(f"the data that was taken from DB: {hospital.name}")
+    # for hospital in hospitals:
+        # print(f"the data that was taken from DB: {hospital.name}")
 
     if not hospitals:
         return {
@@ -105,7 +106,7 @@ async def hospital_locations(
                 )
                 print(response)
                 data = response.json()
-                print(f"the map.ir search param: {hospital.name}")
+                # print(f"the map.ir search param: {hospital.name}")
                 if "value" in data:
                     for item in data["value"]:
                         if selected_class in item["title"] or item['fclass'] in ['clinic' , 'hospital' , 'medical']:
@@ -130,5 +131,4 @@ async def hospital_locations(
     }
     if response_data.get('locations') != []:
         cache[cache_key] = response_data
-    print(response_data)
     return response_data
