@@ -23,19 +23,12 @@ MAP_IR_API_KEY = os.getenv("MAP_IR_API_KEY")
 
 # Wrap DB access to run in a thread pool
 def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical_class: str):
-    cache_key = f"hospitals_{insurance_name}_{city}_{medical_class}"
-    if cache_key in cache:
-        logger.info(f"Cache HIT for {cache_key}")
-        return cache[cache_key]
 
-    logger.info(f"Cache MISS for {cache_key}")
     hospitals = session.query(Hospital).filter_by(
         insurance=insurance_name,
         city=city,
         medical_class=medical_class
     ).limit(20).all()
-    if hospitals:
-        cache[cache_key] = hospitals
     return hospitals
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
@@ -48,10 +41,7 @@ async def hospital_locations(
     session: Session = Depends(get_session)
 ):
     
-    cache_key = f"hospitals_{insurance_name}_{selected_class}_{selected_city}"
-    if cache_key in cache:
-        logger.info(f"Returning cached response for {cache_key}")
-        return cache[cache_key]
+    
     city, province = selected_city, selected_city
     if selected_city == "مکان فعلی من":
         try:
@@ -72,11 +62,16 @@ async def hospital_locations(
                 "failed_hospitals": [],
                 "searched_hospitals": []
             }
-
+        
+    cache_key = f"hospitals_{insurance_name}_{selected_class}_{selected_city}"
+    if cache_key in cache:
+        logger.info(f"Returning cached response for {cache_key}")
+        return cache[cache_key]
+    
     # Run sync DB call in a separate thread
-    hospitals = await anyio.to_thread.run_sync(get_hospitals_sync, session, insurance_name, city, selected_class)
+    else :
+        hospitals = await anyio.to_thread.run_sync(get_hospitals_sync, session, insurance_name, city, selected_class)
     for hospital in hospitals:
-
         print(f"the data that was taken from DB: {hospital.name}")
 
     if not hospitals:
@@ -89,7 +84,6 @@ async def hospital_locations(
     locations = []
     failed_hospitals = []
     searched_hospitals = [h.name for h in hospitals]
-    searching_hospitals = []
 
     async def fetch_location(hospital):
         
@@ -112,7 +106,7 @@ async def hospital_locations(
                         if selected_class in item["title"] or item['fclass'] in ['clinic' , 'hospital' , 'medical']:
                             return item
         except Exception as e:
-            logger.error(f"map.ir failed for {hospital.name}: {str(e)}")
+            logger.error(f"map.ir failed for {hospital.name}: {e}")
             failed_hospitals.append(hospital.name)
         return None
 
