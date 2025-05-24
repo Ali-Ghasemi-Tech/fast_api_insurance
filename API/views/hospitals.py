@@ -75,7 +75,9 @@ async def hospital_locations(
 
     # Run sync DB call in a separate thread
     hospitals = await anyio.to_thread.run_sync(get_hospitals_sync, session, insurance_name, city, selected_class)
-    print(f"the data that was taken from DB: {hospitals}")
+    for hospital in hospitals:
+
+        print(f"the data that was taken from DB: {hospital.name}")
 
     if not hospitals:
         return {
@@ -87,6 +89,7 @@ async def hospital_locations(
     locations = []
     failed_hospitals = []
     searched_hospitals = [h.name for h in hospitals]
+    searching_hospitals = []
 
     async def fetch_location(hospital):
         
