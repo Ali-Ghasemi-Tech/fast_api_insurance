@@ -65,8 +65,9 @@ async def hospital_locations(
         
     cache_key = f"hospitals_{insurance_name}_{selected_class}_{selected_city}"
     if cache_key in cache:
+        print('hospitals are cached from the db , returning cach')
         logger.info(f"Returning cached response for {cache_key}")
-        return cache[cache_key]
+        hospitals =  cache[cache_key]
     
     # Run sync DB call in a separate thread
     else :
@@ -85,7 +86,7 @@ async def hospital_locations(
 
     locations = []
     failed_hospitals = []
-    searched_hospitals = [h.name for h in hospitals]
+    searched_hospitals = []
 
     async def fetch_location(hospital):
         
@@ -107,6 +108,7 @@ async def hospital_locations(
                 if "value" in data:
                     for item in data["value"]:
                         if selected_class in item["title"] or item['fclass'] in ['clinic' , 'hospital' , 'medical']:
+                            searched_hospitals.append(item['title'])
                             return item
         except Exception as e:
             logger.error(f"map.ir failed for {hospital.name}: {e}")
