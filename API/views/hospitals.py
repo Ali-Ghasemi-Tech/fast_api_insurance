@@ -68,7 +68,6 @@ async def hospital_locations(
         print('hospitals are cached from the db , returning cach')
         logger.info(f"Returning cached response for {cache_key_db}")
         hospitals = cache[cache_key_db]
-        print(hospitals)
     
     # Run sync DB call in a separate thread
     else :
@@ -99,13 +98,11 @@ async def hospital_locations(
             if city != '':
                 request_url = f'https://map.ir/search/v2/autocomplete/?text={hospital.name}&%24filter=city eq {city}&lat={lat}&lon={lng}'
             
-            print (request_url)
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
                     request_url,
                     headers={"x-api-key": MAP_IR_API_KEY},
                 )
-                print(response)
                 data = response.json()
                 # print(f"the map.ir search param: {hospital.name}")
                 if "value" in data:
