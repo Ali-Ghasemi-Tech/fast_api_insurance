@@ -27,7 +27,6 @@ limiter = Limiter(
     enabled=True
 )
 # Wrap DB access to run in a thread pool
-@limiter.limit("1/minute" , per_method=True )
 def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical_class: str):
 
     hospitals = session.query(Hospital).filter_by(
@@ -38,9 +37,7 @@ def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical
     return hospitals
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
-@limiter.limit("1/10seconds")  
-
-@limiter.limit("1/minute" , per_method=True )
+@limiter.limit("1/minute")
 async def hospital_locations(
     insurance_name: str = Query(...),
     lat: str = Query(...),
