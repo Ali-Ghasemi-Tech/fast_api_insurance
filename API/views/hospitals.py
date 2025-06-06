@@ -24,7 +24,7 @@ cache = TTLCache(maxsize=1024, ttl=600)
 MAP_IR_API_KEY = os.getenv("MAP_IR_API_KEY")
 limiter = Limiter(
     key_func=get_remote_address,
-    enabled=True
+    storage_uri="memory://"
 )
 # Wrap DB access to run in a thread pool
 def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical_class: str):
@@ -38,7 +38,9 @@ def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
 @limiter.limit("1/minute")
+
 async def hospital_locations(
+    request: Request,
     insurance_name: str = Query(...),
     lat: str = Query(...),
     lng: str = Query(...),
