@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query , Request , HTTPException
 from sqlalchemy.orm import Session
 from API.model import Hospital
 from API.database import get_session
@@ -8,9 +8,12 @@ import httpx
 import asyncio
 import os
 import logging
+from slowapi import Limiter 
+from slowapi.util import get_remote_address
 from dotenv import load_dotenv
 import anyio
 from pprint import pprint
+from typing import Callable , Any
 
 load_dotenv()
 
@@ -20,8 +23,12 @@ logger = logging.getLogger(__name__)
 cache = TTLCache(maxsize=1024, ttl=600)
 
 MAP_IR_API_KEY = os.getenv("MAP_IR_API_KEY")
-
+limiter = Limiter(
+    key_func=get_remote_address,
+    enabled=True
+)
 # Wrap DB access to run in a thread pool
+@limiter.limit("1/minute" , per_method=True )
 def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical_class: str):
 
     hospitals = session.query(Hospital).filter_by(
@@ -32,6 +39,7 @@ def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical
     return hospitals
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
+@limiter.limit("1/minute" , per_method=True )
 async def hospital_locations(
     insurance_name: str = Query(...),
     lat: str = Query(...),
