@@ -11,6 +11,8 @@ import logging
 from dotenv import load_dotenv
 import anyio
 from pprint import pprint
+from slowapi.decorator import limiter
+
 
 load_dotenv()
 
@@ -32,6 +34,8 @@ def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical
     return hospitals
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
+@limiter.limit("1/10seconds")  
+
 async def hospital_locations(
     insurance_name: str = Query(...),
     lat: str = Query(...),
