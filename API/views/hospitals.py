@@ -37,7 +37,7 @@ def get_hospitals_sync(session: Session, insurance_name: str, city: str, medical
     return hospitals
 
 @router.get("/hospital-locations", response_model=HospitalLocationResponse)
-@limiter.limit("1/minute")
+@limiter.limit("5/minute")
 
 async def hospital_locations(
     request: Request,
